@@ -54,15 +54,36 @@ class grid {
 
     // allocate memory for PVector arrays of two-dimensional coordinates:
     centerCoordinates = new PVector[cellXcount][cellYcount];
+    upperLeftCoordinates = new PVector[cellXcount][cellYcount];
+    upperRightCoordinates = new PVector[cellXcount][cellYcount];
+    lowerRightCoordinates = new PVector[cellXcount][cellYcount];
+    lowerLeftCoordinates = new PVector[cellXcount][cellYcount];
 
-    // init two-dimensional array centerCoordinates:
+    // init various two-dimensional coordinate arrays:
+    int tmp_x_coord; int tmp_y_coord;
     for (int yIter = 0; yIter < cellYcount; yIter++) {
       for (int xIter = 0; xIter < cellXcount; xIter++) {
-        float pvector_x_coord = ((xIter+1) * cellWidth) - (cellWidth / 2) + gridUpperLeftXoffset;
-        float pvector_y_coord = ((yIter+1) * cellHeight) - (cellHeight / 2) + gridUpperLeftYoffset;
-        // debug print of values:
-        print("xIter:" + xIter + " yIter:" + yIter + " pvector_x_coord:" + pvector_x_coord + " pvector_y_coord: " + pvector_y_coord + "\n");
-        centerCoordinates[xIter][yIter] = new PVector(pvector_x_coord, pvector_y_coord);
+        // cell center coordinate values:
+        tmp_x_coord = ((xIter+1) * cellWidth) - (cellWidth / 2) + gridUpperLeftXoffset;
+        tmp_y_coord = ((yIter+1) * cellHeight) - (cellHeight / 2) + gridUpperLeftYoffset;
+        centerCoordinates[xIter][yIter] = new PVector(tmp_x_coord, tmp_y_coord);
+        // upper-left coord. values:
+        tmp_x_coord = (xIter * cellWidth) + gridUpperLeftXoffset;
+        tmp_y_coord = (yIter * cellHeight) + gridUpperLeftYoffset;
+        upperLeftCoordinates[xIter][yIter] = new PVector(tmp_x_coord, tmp_y_coord);
+				// upper-right coord. values:
+        tmp_x_coord = ((xIter+1) * cellWidth) + gridUpperLeftXoffset;
+        tmp_y_coord = (yIter * cellHeight) + gridUpperLeftYoffset;
+        upperRightCoordinates[xIter][yIter] = new PVector(tmp_x_coord, tmp_y_coord);
+        // lower-right coord. values:
+        tmp_x_coord = ((xIter+1) * cellWidth) + gridUpperLeftXoffset;
+        tmp_y_coord = ((yIter+1) * cellHeight) + gridUpperLeftYoffset;
+        lowerRightCoordinates[xIter][yIter] = new PVector(tmp_x_coord, tmp_y_coord);
+        // lower-left coord. values:
+        tmp_x_coord = (xIter * cellWidth) + gridUpperLeftXoffset;
+        tmp_y_coord = ((yIter+1) * cellHeight) + gridUpperLeftYoffset;
+        lowerLeftCoordinates[xIter][yIter] = new PVector(tmp_x_coord, tmp_y_coord);
+            // I could make those assignments more efficiently by copying values to all coordinates when the source is in a certain configuration only once, but that would make my code much harder to read and is of dubious more actual code run speed effiency, at my guess.
       }
     }
 
@@ -70,15 +91,19 @@ class grid {
 
 }
 
-// have to declare here or draw() won't know it exists; but have to initialize in settings to get width and height that result from size() in settings():
+// GLOBAL VALUES
+// have to declare here or draw() won't know it exists; but have to initialize in setup() to get width and height that result from size() in settings():
 grid mainGrid;
+PVector coord;    // intended to be constantly modified as a temp variable in draw()
+// END GLOBAL VALUES
+
 
 void setup() {
-  // fullScreen();
-  size(350,350);
+  fullScreen();
+  // size(350,350);
   // function reference: grid (int wantedGridWidth, int wantedGridHeight, float x, float y, String initMode) {
   mainGrid = new grid(width, height, 13, 8, "setCellCountXY");
-  // mainGrid = new grid(width, height, 70, 70, "setCellWidthAndHeight");
+  // mainGrid = new grid(width, height, 100, 100, "setCellWidthAndHeight");
 }
 
 // main Processing draw function (it loops infinitely)
@@ -86,15 +111,33 @@ void draw() {
   ellipseMode(CENTER);
 	int circle_size = mainGrid.cellWidth;
   // [col][row]:
-  PVector coord = mainGrid.centerCoordinates[0][0];
+  // center:
+  coord = mainGrid.centerCoordinates[0][0];
   circle(coord.x, coord.y, circle_size);
+    // upper-left:
+    coord = mainGrid.lowerLeftCoordinates[0][0];
+    circle(coord.x, coord.y, circle_size/4);
+
   coord = mainGrid.centerCoordinates[4][0];
   circle(coord.x, coord.y, circle_size);
+    // . . .
+    coord = mainGrid.lowerLeftCoordinates[4][0];
+    circle(coord.x, coord.y, circle_size/4);
+
   coord = mainGrid.centerCoordinates[2][4];
   circle(coord.x, coord.y, circle_size);
+    coord = mainGrid.lowerLeftCoordinates[2][4];
+    circle(coord.x, coord.y, circle_size/4);
+
   coord = mainGrid.centerCoordinates[0][3];
   circle(coord.x, coord.y, circle_size);
-  
+    coord = mainGrid.lowerLeftCoordinates[0][3];
+    circle(coord.x, coord.y, circle_size/4);
+    coord = mainGrid.upperLeftCoordinates[0][3];
+    circle(coord.x, coord.y, circle_size/4);
+
   coord = mainGrid.centerCoordinates[4][1];
   circle(coord.x, coord.y, circle_size);
+    coord = mainGrid.lowerLeftCoordinates[4][1];
+    circle(coord.x, coord.y, circle_size/4);
 }
