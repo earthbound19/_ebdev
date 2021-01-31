@@ -9,13 +9,27 @@
 // by Richard Alexander Hall
 
 
+// will be a member (class instance or object) within the grid class, below:
+class cellCoordinate {
+  // members
+  int x; int y;
+  // constructor
+  cellCoordinate(int passedX, int passedY) {
+    x = passedX; y = passedY;
+  }
+}
+
 // class for grid of coordinates
 class grid {
   // members
   int gridWidth, gridHeight;    // total width and height of grid
   int cellWidth, cellHeight;    // width and height of each cell in the grid
-  int cellXcount, cellYcount;     // number of cells accross and down in the grid.
+  int cellXcount, cellYcount;   // number of cells accross and down in the grid.
   int gridUpperLeftXoffset = 0; int gridUpperLeftYoffset = 0;   // to center grid coordinates on the canvas if cellWidth and cellHeight don't evenly divide into gridWidth and/or gridHeight. Otherwise, the grid could be in the upper left with padding on the right and below. Note that defaults (initialization) are provided here; they will be overriden if necessary.
+
+  // a list of coordinates (intended use is iterating over it) :
+  cellCoordinate[] coordinatesList;
+
   // THE FOLLOWING are two-dimensional arrays of PVectors of cells organized like [cellXcount][cellYcount] (or [cols][rows] or [accross][down], where each vector is an x and y coordinate associated with a cell:
   PVector[][] centerCoordinates;        // center of cell
   PVector[][] upperLeftCoordinates;     // upper left corner of cell
@@ -52,6 +66,8 @@ class grid {
     // debug print of resultant values:
     print("result values of grid constructor call: gridWidth:" + gridWidth + " gridHeight:" + gridHeight + " cellWidth:" + cellWidth + " cellHeight:" + cellHeight + " cellXcount:" + cellXcount + " cellYcount:" + cellYcount + " gridUpperLeftXoffset: " + gridUpperLeftXoffset + " gridUpperLeftYoffset:" + gridUpperLeftYoffset + "\n");
 
+    // allocate memory for coordinatesList:
+    coordinatesList = new cellCoordinate[cellXcount * cellYcount];
     // allocate memory for PVector arrays of two-dimensional coordinates:
     centerCoordinates = new PVector[cellXcount][cellYcount];
     upperLeftCoordinates = new PVector[cellXcount][cellYcount];
@@ -60,9 +76,12 @@ class grid {
     lowerLeftCoordinates = new PVector[cellXcount][cellYcount];
 
     // init various two-dimensional coordinate arrays:
+    int cellCounter = 0;
     int tmp_x_coord; int tmp_y_coord;
     for (int yIter = 0; yIter < cellYcount; yIter++) {
       for (int xIter = 0; xIter < cellXcount; xIter++) {
+        // expand cellCoordinate array with current x and y coord:
+        coordinatesList[cellCounter] = new cellCoordinate(xIter, yIter); cellCounter += 1;
         // cell center coordinate values:
         tmp_x_coord = ((xIter+1) * cellWidth) - (cellWidth / 2) + gridUpperLeftXoffset;
         tmp_y_coord = ((yIter+1) * cellHeight) - (cellHeight / 2) + gridUpperLeftYoffset;
@@ -86,7 +105,7 @@ class grid {
             // I could make those assignments more efficiently by copying values to all coordinates when the source is in a certain configuration only once, but that would make my code much harder to read and is of dubious more actual code run speed effiency, at my guess.
       }
     }
-
+    
   }
 
 }
@@ -94,50 +113,37 @@ class grid {
 // GLOBAL VALUES
 // have to declare here or draw() won't know it exists; but have to initialize in setup() to get width and height that result from size() in settings():
 grid mainGrid;
-PVector coord;    // intended to be constantly modified as a temp variable in draw()
+int mainGridCoordinateListLength;
+PVector coord;    // intended to be constantly modified as a temp variable
+int cellDrawingCircleSize;  // to be used for circle drawings on grid
 // END GLOBAL VALUES
 
 
 void setup() {
-  fullScreen();
-  // size(350,350);
+  // fullScreen();
+  size(700,700);
   // function reference: grid (int wantedGridWidth, int wantedGridHeight, float x, float y, String initMode) {
-  mainGrid = new grid(width, height, 13, 8, "setCellCountXY");
-  // mainGrid = new grid(width, height, 100, 100, "setCellWidthAndHeight");
+  // mainGrid = new grid(width, height, 13, 8, "setCellCountXY");
+  mainGrid = new grid(width, height, 100, 100, "setCellWidthAndHeight");
+  mainGridCoordinateListLength = mainGrid.coordinatesList.length;
+  cellDrawingCircleSize = mainGrid.cellWidth;
+  fill(#ff0596);
+  strokeWeight(3.83);
+  stroke(#01edfd);
+  ellipseMode(CENTER);
+}
+
+void drawCells() {
+  for (int i = 0; i < mainGridCoordinateListLength; i++) {
+    int tmp_x = mainGrid.coordinatesList[i].x;
+    int tmp_y = mainGrid.coordinatesList[i].y;
+    coord = mainGrid.centerCoordinates[tmp_x][tmp_y];
+    circle(coord.x, coord.y, cellDrawingCircleSize);
+  }
 }
 
 // main Processing draw function (it loops infinitely)
 void draw() {
-  ellipseMode(CENTER);
-	int circle_size = mainGrid.cellWidth;
-  // [col][row]:
-  // center:
-  coord = mainGrid.centerCoordinates[0][0];
-  circle(coord.x, coord.y, circle_size);
-    // upper-left:
-    coord = mainGrid.lowerLeftCoordinates[0][0];
-    circle(coord.x, coord.y, circle_size/4);
-
-  coord = mainGrid.centerCoordinates[4][0];
-  circle(coord.x, coord.y, circle_size);
-    // . . .
-    coord = mainGrid.lowerLeftCoordinates[4][0];
-    circle(coord.x, coord.y, circle_size/4);
-
-  coord = mainGrid.centerCoordinates[2][4];
-  circle(coord.x, coord.y, circle_size);
-    coord = mainGrid.lowerLeftCoordinates[2][4];
-    circle(coord.x, coord.y, circle_size/4);
-
-  coord = mainGrid.centerCoordinates[0][3];
-  circle(coord.x, coord.y, circle_size);
-    coord = mainGrid.lowerLeftCoordinates[0][3];
-    circle(coord.x, coord.y, circle_size/4);
-    coord = mainGrid.upperLeftCoordinates[0][3];
-    circle(coord.x, coord.y, circle_size/4);
-
-  coord = mainGrid.centerCoordinates[4][1];
-  circle(coord.x, coord.y, circle_size);
-    coord = mainGrid.lowerLeftCoordinates[4][1];
-    circle(coord.x, coord.y, circle_size/4);
+  background(#5e6061);
+  drawCells();
 }
